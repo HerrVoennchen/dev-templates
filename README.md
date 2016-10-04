@@ -1,1 +1,2 @@
-dev-templates
+# dev-templates
+- react: mit Webpack, eslint

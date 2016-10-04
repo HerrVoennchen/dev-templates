@@ -3,25 +3,50 @@ var webpack = require('webpack');
 var path = require('path');
 
 module.exports = {
-  context: path.join(__dirname, "src/js"),
+  context: __dirname,
+  recursive: true,
   devtool: debug ? "inline-sourcemap" : null,
-  entry: "./app.js",
+  entry: "./src/js/App.jsx",
+  resolve: {
+    root: path.resolve(path.join(__dirname, "src")),
+    extensions: ['', '.js', '.jsx', '.css', '.html']
+  },
   module: {
+    preLoaders: [
+      // Javascript
+      { 
+        test: /\.jsx?$/, 
+        loader: 'eslint', 
+        exclude: /(lib|node_modules|bower_components)/ 
+      }
+    ],
     loaders: [
       {
         test: /\.jsx?$/,
-        exclude: /(node_modules|bower_components)/,
+        exclude: /(lib|node_modules|bower_components)/,
         loader: 'babel-loader',
         query: {
           presets: ['react', 'es2015'],
           plugins: ['react-html-attrs', 'transform-decorators-legacy', 'transform-class-properties'],
         }
+      }, { 
+        test: /\.css$/, 
+        exclude: /(lib|node_modules|bower_components)/,
+        loader: "style!css" 
+      }, { 
+        test: /\.html$/, 
+        exclude: /(lib|node_modules|bower_components)/,
+        loader: "html" 
       }
     ]
   },
   output: {
     path: __dirname + "/src/",
     filename: "app.min.js"
+  },
+  eslint: {
+    failOnWarning: false,
+    failOnError: true
   },
   plugins: debug ? [] : [
     new webpack.optimize.DedupePlugin(),
