@@ -31,7 +31,7 @@ module.exports = {
 		}]
 	},
 	resolve: {
-		modules: [path.resolve(__dirname, 'src'), 'node_modules'],
+		modules: [path.resolve(__dirname, 'src'), path.resolve(__dirname, 'node_modules')],
 		extensions: ['.js', '.jsx', '.css', '.html']
 	},
 	plugins: [
@@ -39,6 +39,24 @@ module.exports = {
 		filename: 'app.bundle.css',
 		allChunks: true
 	}),
+	new webpack.ProvidePlugin({
+		jQuery: 'jquery',
+		$: 'jquery',
+		jquery: 'jquery',
+		Tether: "tether",
+		"window.Tether": "tether",
+		Tooltip: "exports-loader?Tooltip!bootstrap/js/dist/tooltip",
+		Alert: "exports-loader?Alert!bootstrap/js/dist/alert",
+		Button: "exports-loader?Button!bootstrap/js/dist/button",
+		Carousel: "exports-loader?Carousel!bootstrap/js/dist/carousel",
+		Collapse: "exports-loader?Collapse!bootstrap/js/dist/collapse",
+		Dropdown: "exports-loader?Dropdown!bootstrap/js/dist/dropdown",
+		Modal: "exports-loader?Modal!bootstrap/js/dist/modal",
+		Popover: "exports-loader?Popover!bootstrap/js/dist/popover",
+		Scrollspy: "exports-loader?Scrollspy!bootstrap/js/dist/scrollspy",
+		Tab: "exports-loader?Tab!bootstrap/js/dist/tab",
+		Util: "exports-loader?Util!bootstrap/js/dist/util"
+	})
 	/*new HtmlWebpackPlugin({
 		template: path.join(__dirname, 'src/index.html'),
 		filename: 'index.html',
