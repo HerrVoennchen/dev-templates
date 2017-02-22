@@ -1,0 +1,14 @@
+h1 {
+	color: #00F;
+}
+
+.content {
+	padding-top: 10px;
+	padding-right: 15px;
+	padding-left: 15px;
+	padding-bottom: 10px;
+}
+
+.navbar-footer {
+	background-color: #e3f2fd;
+}
