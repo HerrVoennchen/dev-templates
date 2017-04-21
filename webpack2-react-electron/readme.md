@@ -1,3 +1,3 @@
 Electron + Webpack 2 + React + Tools Boilerplate template
 
-based on https://github.com/alexakasanjeev/electron-react-quick-start
+based on https://github.com/alexakasanjeev/electron-react-quick-start and my existing react+webpack2 project.
