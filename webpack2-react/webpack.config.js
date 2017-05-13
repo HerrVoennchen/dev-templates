@@ -1,90 +1,147 @@
-var debug = process.env.NODE_ENV !== "production";
-const path = require('path');
-const webpack = require('webpack');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
-//const HtmlWebpackPlugin = require('html-webpack-plugin');
+var debug = process.env.NODE_ENV !== 'production';
+var webpack = require('webpack');
+var path = require('path');
+var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var WatchLiveReloadPlugin = require('webpack-watch-livereload-plugin');
+var WebpackShellPlugin = require('webpack-shell-plugin');
+var OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
 module.exports = {
-	devtool: 'source-map',
 	context: __dirname,
+	devtool: debug ? 'source-map' : false,
 	entry: {
-		app: ['./src/js/App.jsx'],
+		app: ['./App/src/app.js']
 	},
 	output: {
-		path: __dirname,
-		filename: 'app.bundle.js',
+		path: path.resolve(__dirname, 'app'),
+		filename: 'app.bundle.js'
+	},
+	resolve: {
+		modules: [path.resolve(__dirname, 'app'), 'node_modules'],
+		extensions: ['.js', '.jsx', '.css', '.html', '.scss', '.json'],
+		alias: {
+			/*config: path.resolve(__dirname, 'app/config.js'),
+            dashletevent: path.resolve(__dirname, 'app/DashletEvent.js')*/
+		}
+	},
+	externals: {
+		/*config: 'config',
+        dashletevent: 'dashletevent'*/
 	},
 	module: {
 		rules: [
-		{
-			test: /\.jsx?$/,
-			loader: 'babel-loader',
-			options: { 
-				presets: ['react', 'es2015', 'es2016', 'es2017', 'stage-3'],
-				plugins: ['react-html-attrs', 'transform-decorators-legacy', 'transform-class-properties'],
+			{
+				test: /\.jsx?$/,
+				loader: 'babel-loader',
+				options: {
+					presets: [
+						'latest',
+						'react',
+						['es2015', { modules: false }],
+						'stage-3'
+					],
+					plugins: [
+						'react-html-attrs',
+						'transform-decorators-legacy',
+						'transform-class-properties'
+					]
+				},
+				include: [path.resolve(__dirname, 'App')],
+				exclude: [/node_modules/]
 			},
-			include: [
-			path.resolve(__dirname, "src")
-			],
-			exclude: [/node_modules/]
-		},
-		{
-			test: /\.css$/,
-			loader:  ExtractTextPlugin.extract({
-				loader: 'css-loader?importLoaders=1'
-			})
-		}]
-	},
-	resolve: {
-		modules: [path.resolve(__dirname, 'src'), 'node_modules'],
-		extensions: ['.js', '.jsx', '.css', '.html']
-	},
-	plugins: debug ?  [
-	new ExtractTextPlugin({
-		filename: 'app.bundle.css',
-		allChunks: true
-	}),
-	new webpack.ProvidePlugin({
-		jQuery: 'jquery',
-		$: 'jquery',
-		jquery: 'jquery',
-		Tether: "tether",
-		"window.Tether": "tether",
-		Tooltip: "exports-loader?Tooltip!bootstrap/js/dist/tooltip",
-		Alert: "exports-loader?Alert!bootstrap/js/dist/alert",
-		Button: "exports-loader?Button!bootstrap/js/dist/button",
-		Carousel: "exports-loader?Carousel!bootstrap/js/dist/carousel",
-		Collapse: "exports-loader?Collapse!bootstrap/js/dist/collapse",
-		Dropdown: "exports-loader?Dropdown!bootstrap/js/dist/dropdown",
-		Modal: "exports-loader?Modal!bootstrap/js/dist/modal",
-		Popover: "exports-loader?Popover!bootstrap/js/dist/popover",
-		Scrollspy: "exports-loader?Scrollspy!bootstrap/js/dist/scrollspy",
-		Tab: "exports-loader?Tab!bootstrap/js/dist/tab",
-		Util: "exports-loader?Util!bootstrap/js/dist/util"
-	}),
-	new WatchLiveReloadPlugin({
-		files: [
-		'./src/**/*.html',
+			{
+				test: /\.css$/,
+				loader: ExtractTextPlugin.extract({
+					fallback: 'style-loader',
+					use: [
+						{
+							loader: 'css-loader',
+							options: { importLoaders: 1, sourceMap: true }
+						},
+						{
+							loader: 'postcss-loader',
+							options: {
+								sourceMap: debug,
+								plugins: [require('autoprefixer')()]
+							}
+						}
+					]
+				})
+			},
+			{
+				test: /\.(ttf|otf|eot|svg|woff(2)?)(\?[a-z0-9]+)?$/,
+				loader: 'url-loader'
+			},
+			{
+				test: /\.html?$/,
+				loader: 'html-loader'
+			},
+			{
+				test: /\.less$/,
+				loader: ExtractTextPlugin.extract({
+					fallback: 'style-loader',
+					use: 'css-loader!less-loader'
+				})
+			}
 		]
-	})
-	/*new HtmlWebpackPlugin({
-		template: path.join(__dirname, 'src/index.html'),
-		filename: 'index.html',
-		inject: 'body'
-	})*/
-	] : [
-	new ExtractTextPlugin("styles.css"),
-	new webpack.optimize.DedupePlugin(),
-	new webpack.optimize.OccurenceOrderPlugin(),
-	new webpack.optimize.UglifyJsPlugin({ mangle: false, sourcemap: false, minimize: true, compress: { warnings: false } }),
-	],
+	},
+	plugins: debug
+		? [
+				new ExtractTextPlugin({
+					filename: 'app.bundle.css',
+					allChunks: true
+				}),
+				new WatchLiveReloadPlugin({
+					files: ['./app/**/*.html', './app/**/*.css']
+				}) /*,
+    new WebpackShellPlugin({
+        onBuildEnd: 'node copyFilesToDist.js'
+    })*/
+			]
+		: [
+				new webpack.DefinePlugin({
+					'process.env': {
+						NODE_ENV: JSON.stringify('production')
+					}
+				}),
+				new ExtractTextPlugin({
+					filename: 'app.bundle.css',
+					allChunks: true
+				}),
+				new webpack.optimize.UglifyJsPlugin({
+					//mangle: false,
+					compress: {
+						warnings: false
+					},
+					minimize: true,
+					sourcemap: false
+				}),
+				new OptimizeCssAssetsPlugin({
+					assetNameRegExp: /\.css$/g,
+					cssProcessor: require('cssnano'),
+					cssProcessorOptions: {
+						discardComments: { removeAll: true },
+						colormin: true,
+						discardDuplicates: true,
+						discardOverridden: true,
+						mergeLonghand: true,
+						minifyFontValues: true,
+						orderedValues: true,
+						reduceDisplayValues: true,
+						reduceInitial: true,
+						uniqueSelectors: true,
+						discardUnused: true,
+						minifyGradients: true,
+						minifySelectors: true,
+						svgo: true
+					},
+					canPrint: true
+				})
+				/*new WebpackShellPlugin({
+        onBuildEnd: 'node copyFilesToDist.js'
+    })*/
+			],
 	devServer: {
-		contentBase: "src",
-		proxy: [{
-			context: '/enaioBAS',
-			target: 'http://10.10.10.82:26955',
-			secure: false
-		}]
+		contentBase: 'app'
 	}
 };
