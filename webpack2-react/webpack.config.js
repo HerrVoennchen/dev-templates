@@ -10,7 +10,7 @@ module.exports = {
 	context: __dirname,
 	devtool: debug ? 'source-map' : false,
 	entry: {
-		app: ['./App/src/app.js']
+		app: ['./src/js/app.js']
 	},
 	output: {
 		path: path.resolve(__dirname, 'app'),
