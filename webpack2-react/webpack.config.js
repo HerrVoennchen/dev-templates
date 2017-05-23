@@ -5,28 +5,29 @@ var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var WatchLiveReloadPlugin = require('webpack-watch-livereload-plugin');
 var WebpackShellPlugin = require('webpack-shell-plugin');
 var OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const NameAllModulesPlugin = require('name-all-modules-plugin');
+var HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
 	context: __dirname,
 	devtool: debug ? 'source-map' : false,
 	entry: {
-		app: ['./src/js/app.js']
+		app: ['./src/js/App.jsx'],
+		vendor: ['react']
 	},
 	output: {
-		path: path.resolve(__dirname, 'app'),
-		filename: 'app.bundle.js'
+		path: path.resolve(__dirname, 'src'),
+		filename: debug ? '[name].[hash].js' : '[name].[chunkhash].js'
 	},
 	resolve: {
-		modules: [path.resolve(__dirname, 'app'), 'node_modules'],
+		modules: [path.resolve(__dirname, 'src'), 'node_modules'],
 		extensions: ['.js', '.jsx', '.css', '.html', '.scss', '.json'],
 		alias: {
-			/*config: path.resolve(__dirname, 'app/config.js'),
-            dashletevent: path.resolve(__dirname, 'app/DashletEvent.js')*/
+			/*config: path.resolve(__dirname, 'app/config.js')*/
 		}
 	},
 	externals: {
-		/*config: 'config',
-        dashletevent: 'dashletevent'*/
+		/*config: 'config',*/
 	},
 	module: {
 		rules: [
@@ -35,6 +36,7 @@ module.exports = {
 				loader: 'babel-loader',
 				options: {
 					presets: [
+						'env',
 						'latest',
 						'react',
 						['es2015', { modules: false }],
@@ -46,7 +48,7 @@ module.exports = {
 						'transform-class-properties'
 					]
 				},
-				include: [path.resolve(__dirname, 'App')],
+				include: [path.resolve(__dirname, 'src')],
 				exclude: [/node_modules/]
 			},
 			{
@@ -92,17 +94,54 @@ module.exports = {
 					allChunks: true
 				}),
 				new WatchLiveReloadPlugin({
-					files: ['./app/**/*.html', './app/**/*.css']
-				}) /*,
-    new WebpackShellPlugin({
-        onBuildEnd: 'node copyFilesToDist.js'
-    })*/
+					files: ['./src/**/*.html', './src/**/*.css']
+				}),
+				new webpack.NamedModulesPlugin(),
+				new webpack.NamedChunksPlugin(chunk => {
+					if (chunk.name) {
+						return chunk.name;
+					}
+					return chunk.modules
+						.map(m => path.relative(m.context, m.request))
+						.join('_');
+				}),
+				new webpack.optimize.CommonsChunkPlugin({
+					name: 'vendor',
+					minChunks: Infinity
+				}),
+				new webpack.optimize.CommonsChunkPlugin({
+					name: 'runtime'
+				}),
+				new NameAllModulesPlugin(),
+				new HtmlWebpackPlugin({
+					template: 'src/index.html'
+				})
 			]
 		: [
 				new webpack.DefinePlugin({
 					'process.env': {
 						NODE_ENV: JSON.stringify('production')
 					}
+				}),
+				new webpack.NamedModulesPlugin(),
+				new webpack.NamedChunksPlugin(chunk => {
+					if (chunk.name) {
+						return chunk.name;
+					}
+					return chunk.modules
+						.map(m => path.relative(m.context, m.request))
+						.join('_');
+				}),
+				new webpack.optimize.CommonsChunkPlugin({
+					name: 'vendor',
+					minChunks: Infinity
+				}),
+				new webpack.optimize.CommonsChunkPlugin({
+					name: 'runtime'
+				}),
+				new NameAllModulesPlugin(),
+				new HtmlWebpackPlugin({
+					template: 'src/index.html'
 				}),
 				new ExtractTextPlugin({
 					filename: 'app.bundle.css',
@@ -136,12 +175,13 @@ module.exports = {
 						svgo: true
 					},
 					canPrint: true
+				}),
+				new WebpackShellPlugin({
+					onBuildEnd: 'node copyFilesToDist.js'
 				})
-				/*new WebpackShellPlugin({
-        onBuildEnd: 'node copyFilesToDist.js'
-    })*/
 			],
 	devServer: {
-		contentBase: 'app'
+		contentBase: 'src',
+		historyApiFallback: true
 	}
 };
