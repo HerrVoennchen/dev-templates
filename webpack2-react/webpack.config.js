@@ -5,7 +5,7 @@ var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var WatchLiveReloadPlugin = require('webpack-watch-livereload-plugin');
 var WebpackShellPlugin = require('webpack-shell-plugin');
 var OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
-const NameAllModulesPlugin = require('name-all-modules-plugin');
+var NameAllModulesPlugin = require('name-all-modules-plugin');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
@@ -114,7 +114,8 @@ module.exports = {
 				}),
 				new NameAllModulesPlugin(),
 				new HtmlWebpackPlugin({
-					template: 'src/index.html'
+					template: 'src/index.html',
+					xhtml: true
 				})
 			]
 		: [
@@ -141,7 +142,8 @@ module.exports = {
 				}),
 				new NameAllModulesPlugin(),
 				new HtmlWebpackPlugin({
-					template: 'src/index.html'
+					template: 'src/index.html',
+					xhtml: true
 				}),
 				new ExtractTextPlugin({
 					filename: 'app.bundle.css',
