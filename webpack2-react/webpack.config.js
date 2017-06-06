@@ -10,7 +10,7 @@ var HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
 	context: __dirname,
-	devtool: debug ? 'source-map' : false,
+	devtool: 'source-map',
 	entry: {
 		app: ['./src/js/App.jsx'],
 		vendor: ['react']
