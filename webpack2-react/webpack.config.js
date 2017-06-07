@@ -13,7 +13,21 @@ module.exports = {
 	devtool: 'source-map',
 	entry: {
 		app: ['./src/js/App.jsx'],
-		vendor: ['react']
+		vendor: [
+			'react',
+			'react-dom',
+			'react-router',
+			'react-router-dom',
+			'react-redux',
+			'axios',
+			'classnames',
+			'redux',
+			'redux-logger',
+			'redux-promise-middleware',
+			'redux-thunk',
+			'redux-tiles',
+			'toastr'
+		]
 	},
 	output: {
 		path: path.resolve(__dirname, 'src'),
@@ -23,11 +37,11 @@ module.exports = {
 		modules: [path.resolve(__dirname, 'src'), 'node_modules'],
 		extensions: ['.js', '.jsx', '.css', '.html', '.scss', '.json'],
 		alias: {
-			/*config: path.resolve(__dirname, 'app/config.js')*/
+			config: path.resolve(__dirname, 'app/config.js')
 		}
 	},
 	externals: {
-		/*config: 'config',*/
+		config: 'config'
 	},
 	module: {
 		rules: [
@@ -36,17 +50,33 @@ module.exports = {
 				loader: 'babel-loader',
 				options: {
 					presets: [
-						'env',
+						[
+							'env',
+							{
+								targets: {
+									browsers: ['chrome >= 54']
+								},
+								loose: true,
+								modules: false
+							}
+						],
 						'latest',
 						'react',
-						['es2015', { modules: false }],
+						['es2015', { loose: true, modules: false }],
 						'stage-3'
 					],
-					plugins: [
-						'react-html-attrs',
-						'transform-decorators-legacy',
-						'transform-class-properties'
-					]
+					plugins: debug
+						? [
+								'react-html-attrs',
+								'transform-decorators-legacy',
+								'transform-class-properties'
+							]
+						: [
+								'react-html-attrs',
+								'transform-decorators-legacy',
+								'transform-class-properties',
+								'transform-react-inline-elements'
+							]
 				},
 				include: [path.resolve(__dirname, 'src')],
 				exclude: [/node_modules/]
@@ -58,7 +88,7 @@ module.exports = {
 					use: [
 						{
 							loader: 'css-loader',
-							options: { importLoaders: 1, sourceMap: true }
+							options: { importLoaders: 1, sourceMap: debug }
 						},
 						{
 							loader: 'postcss-loader',
@@ -71,10 +101,6 @@ module.exports = {
 				})
 			},
 			{
-				test: /\.(ttf|otf|eot|svg|woff(2)|gif?)(\?[a-z0-9]+)?$/,
-				loader: 'url-loader'
-			},
-			{
 				test: /\.html?$/,
 				loader: 'html-loader'
 			},
@@ -84,6 +110,14 @@ module.exports = {
 					fallback: 'style-loader',
 					use: 'css-loader!less-loader'
 				})
+			},
+			{
+				test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+				loader: 'url-loader?name=[name].[ext]&limit=10000&mimetype=application/font-woff'
+			},
+			{
+				test: /\.(ttf|eot|svg|gif)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+				loader: 'file-loader?name=[name].[ext]'
 			}
 		]
 	},
